@@ -1,0 +1,29 @@
+/*************************************************************************************************
+Question:How to calculate the monthly sale amount and its percentageagainst the anual sale
+**************************************************************************************************/
+
+----SOLUTION
+WITH MONTHLY_SALE AS (
+SELECT	DATEPART(Year, OrderDAte) AS SALE_YR,
+		DATEPART(Month,OrderDAte) AS SALE_MO, 
+		SUM(SUBTOTAL) AS SALE_AMT
+FROM	SALES.SalesOrderHeader
+GROUP BY	DATEPART(Year, OrderDAte) ,
+		DATEPART(Month,OrderDAte) 
+) ,
+ANNUAL_SALE AS 
+(
+SELECT	SALE_YR, 
+		SUM(SALE_AMT) AS SALE_AMT
+FROM	MONTHLY_SALE
+GROUP BY SALE_YR 
+) 
+SELECT	MONTHLY_SALE.SALE_YR,
+		MONTHLY_SALE.SALE_MO,
+		MONTHLY_SALE.SALE_AMT AS MONTHLY_SALE_AMT,
+		ANNUAL_SALE.SALE_AMT  AS ANNAUL_SALE_AMT,
+		MONTHLY_SALE.SALE_AMT / ANNUAL_SALE.SALE_AMT * 100 AS PCT
+FROM	MONTHLY_SALE INNER JOIN ANNUAL_SALE 
+		ON
+		MONTHLY_SALE.SALE_YR = ANNUAL_SALE.SALE_YR
+;
