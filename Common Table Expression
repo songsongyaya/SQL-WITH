@@ -1,5 +1,5 @@
 /*************************************************************************************************
-Question:How to calculate the monthly sale amount and its percentageagainst the anual sale
+Question1:How to calculate the monthly sale amount and its percentageagainst the anual sale
 **************************************************************************************************/
 
 ----SOLUTION
@@ -27,3 +27,48 @@ FROM	MONTHLY_SALE INNER JOIN ANNUAL_SALE
 		ON
 		MONTHLY_SALE.SALE_YR = ANNUAL_SALE.SALE_YR
 ;
+
+/***************************************************************
+Question2: generate a report to compare a sales person's performance for every month between two years.compare the same month performance between current year
+           and previous year
+****************************************************************/ 
+WITH SALES AS (
+SELECT	sp.BusinessEntityID as sales_person_id,
+	p.FirstName,
+	p.LastName,
+	datepart(year,oh.OrderDate) as yr,
+	datepart(month,oh.orderdate) as mo,
+	sum(oh.SubTotal) as sales_amt
+FROM	SALES.SalesOrderHeader oh
+	inner join
+	Sales.SalesPerson sp
+	ON
+	oh.SalesPersonID = sp.BusinessEntityID
+	inner join
+	person.Person p
+	ON
+	sp.BusinessEntityID = p.BusinessEntityID
+GROUP BY Sp.BusinessEntityID ,
+	p.FirstName,
+	p.LastName,
+	datepart(year,oh.OrderDate) ,
+	datepart(month,oh.orderdate) 
+)
+
+SELECT
+	coalesce(a.sales_person_id,b.sales_person_id) as sales_person_id, 
+	coalesce(a.FirstName,b.FirstName) as FirstName,
+	coalesce(a.LastName,b.LastName) as LastName,
+	coalesce(a.yr,b.yr+1) as yr,
+	coalesce(b.yr,a.yr -1) as prev_yr,
+	coalesce(a.mo,b.mo) as mo,
+	coalesce(a.sales_amt ,0) as sales_amt,
+	coalesce(b.sales_amt,0) as prev_sales
+FROM	sales a
+	FULL OUTER JOIN
+	sales b
+ON
+a.sales_person_id = b.sales_person_id and
+a.mo = b.mo and
+a.yr = b.yr +1
+ORDER BY  sales_person_id,yr,mo;
