@@ -3,29 +3,30 @@ Question1:How to calculate the monthly sale amount and its percentageagainst the
 **************************************************************************************************/
 
 ----SOLUTION
-WITH MONTHLY_SALE AS (
-SELECT	DATEPART(Year, OrderDAte) AS SALE_YR,
-		DATEPART(Month,OrderDAte) AS SALE_MO, 
-		SUM(SUBTOTAL) AS SALE_AMT
-FROM	SALES.SalesOrderHeader
-GROUP BY	DATEPART(Year, OrderDAte) ,
-		DATEPART(Month,OrderDAte) 
-) ,
-ANNUAL_SALE AS 
+with monthly_sale as (
+select	datepart(year, orderdate) as sale_yr,
+	datepart(month,orderdate) as sale_mo, 
+	sum(subtotal) as sale_amt
+from	Sales.SalesOrderHeader
+group by datepart(year, orderdate) ,
+      datepart(month,orderdate) 
+),
+annual_sale as 
 (
-SELECT	SALE_YR, 
-		SUM(SALE_AMT) AS SALE_AMT
-FROM	MONTHLY_SALE
-GROUP BY SALE_YR 
+  select sale_yr, 
+  sum(sale_amt) as sale_amt
+  from monthly_sale
+  group by sale_yr 
 ) 
-SELECT	MONTHLY_SALE.SALE_YR,
-		MONTHLY_SALE.SALE_MO,
-		MONTHLY_SALE.SALE_AMT AS MONTHLY_SALE_AMT,
-		ANNUAL_SALE.SALE_AMT  AS ANNAUL_SALE_AMT,
-		MONTHLY_SALE.SALE_AMT / ANNUAL_SALE.SALE_AMT * 100 AS PCT
-FROM	MONTHLY_SALE INNER JOIN ANNUAL_SALE 
-		ON
-		MONTHLY_SALE.SALE_YR = ANNUAL_SALE.SALE_YR
+select	monthly_sale.sale_yr,
+	monthly_sale.sale_mo,
+	monthly_sale.sale_amt as monthly_sale_amt,
+	annual_sale.sale_amt  as annaul_sale_amt,
+	monthly_sale.sale_amt / annual_sale.sale_amt * 100 as pct
+from	monthly_sale inner join annual_sale 
+        on
+	monthly_sale.sale_yr = annual_sale.sale_yr
+
 ;
 
 /***************************************************************
